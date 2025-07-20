@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Sorteio de Cor</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; background-color: #f0f0f0; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #result { margin-top: 20px; font-size: 24px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Sorteio de Cor para o Piquenique</h1>
+  <button onclick="sortearCor()">Sortear minha cor</button>
+  <div id="result"></div>
+
+  <script>
+    async function sortearCor() {
+      const res = await fetch("https://SEU_BACKEND.onrender.com/sortear");
+      const data = await res.json();
+      const result = document.getElementById("result");
+
+      if (data.color) {
+        result.textContent = `Você tirou: ${data.color}!`;
+      } else {
+        result.textContent = "Todas as cores já foram sorteadas!";
+      }
+    }
+  </script>
+</body>
+</html>
