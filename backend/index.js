@@ -1,8 +1,8 @@
-const express = require("express");
 const fs = require("fs");
+const express = require("express");
 const cors = require("cors");
-const { v4: uuidv4 } = require("uuid"); // npm i uuid
-const cookieParser = require("cookie-parser"); // npm i cookie-parser
+const cookieParser = require("cookie-parser");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,19 +16,20 @@ app.use(cookieParser());
 app.get("/sortear", (req, res) => {
   let userId = req.cookies.userId;
 
-  // Se não tem cookie, cria um novo userId e envia no cookie
   if (!userId) {
     userId = uuidv4();
-    res.cookie("userId", userId, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 }); // 30 dias
+    res.cookie("userId", userId, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 });
   }
 
-  // Lê os dados
+  // Lê o arquivo colors.json para pegar todas as cores possíveis
   const colorsData = JSON.parse(fs.readFileSync("colors.json", "utf-8"));
+
+  // Lê o arquivo usersColors.json para saber quem já pegou qual cor
   let usersColors = { users: [] };
   try {
     usersColors = JSON.parse(fs.readFileSync("usersColors.json", "utf-8"));
-  } catch {
-    // arquivo pode não existir, inicia vazio
+  } catch (err) {
+    usersColors = { users: [] };
   }
 
   // Verifica se o usuário já tem uma cor sorteada
@@ -37,26 +38,25 @@ app.get("/sortear", (req, res) => {
     return res.json({ color: existingUser.color });
   }
 
-  // Pega as cores já usadas (pelos usuários)
+  // Filtra as cores já usadas para não repetir
   const usedColors = usersColors.users.map(u => u.color);
-
-  // Filtra as cores disponíveis que ainda não foram usadas
   const availableColors = colorsData.availableColors.filter(c => !usedColors.includes(c));
 
   if (availableColors.length === 0) {
     return res.json({ error: "Todas as cores já foram sorteadas!" });
   }
 
-  // Sorteia uma cor disponível
+  // Sorteia uma cor disponível aleatória
   const randomIndex = Math.floor(Math.random() * availableColors.length);
   const chosenColor = availableColors[randomIndex];
 
-  // Adiciona o usuário e a cor sorteada
+  // Adiciona o usuário e sua cor sorteada na lista
   usersColors.users.push({ id: userId, color: chosenColor });
 
-  // Salva no arquivo usersColors.json
-  fs.writeFileSync("usersColors.json", JSON.stringify(usersColors, null, 2));
+  // Salva a lista atualizada de usuários com cores no arquivo
+  fs.writeFileSync("usersColors.json", JSON.stringify(usersColors, null, 2), "utf-8");
 
+  // Retorna a cor sorteada para o usuário
   res.json({ color: chosenColor });
 });
 
