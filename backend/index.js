@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: true,
+  origin: "https://color-sorter-two.vercel.app",
   credentials: true,
 }));
 app.use(cookieParser());
@@ -18,7 +18,12 @@ app.get("/sortear", (req, res) => {
 
   if (!userId) {
     userId = uuidv4();
-    res.cookie("userId", userId, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000 });
+    res.cookie("userId", userId, {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      secure: true,       // obrigatório em HTTPS
+      sameSite: "none"    // para permitir cross-site cookie
+    });
   }
 
   // Lê o arquivo colors.json para pegar todas as cores possíveis
